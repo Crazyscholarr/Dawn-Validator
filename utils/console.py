@@ -10,10 +10,8 @@ def setup():
     logger.add(
         sys.stdout,
         colorize=True,
-        format="<light-cyan>{time:HH:mm:ss}</light-cyan> | <level> {level: <8}</level> | - <white>{"
-        "message}</white>",
+        format="<light-cyan>{time:HH:mm:ss}</light-cyan> | <level> {level: <8}</level> | <light-magenta>Crazyscholar</light-magenta> | <white>{message}</white>",
     )
     logger.add("./logs/logs.log", rotation="1 day", retention="7 days")
-
 
 
