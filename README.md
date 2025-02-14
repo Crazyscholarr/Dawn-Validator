@@ -1,3 +1,8 @@
-# Dawn-Validator
-# Dawn-Validator
-# Dawn-Validator
+- Vào config -> data -> farm.txt -> điền tài khoản / mật khẩu dạng "gmail.com : pass"
+                      ->poxies.txt-> điền vừa đủ proxy (chỉ 1-1 )
+                      -> register.txt ->  điền tài khoản / mật khẩu như trên nhưng là tài khoản muốn tạo ( không có thì điền lại phần farm.txt) 
+                      -> reverify.txt -> tạo tài khoản thì phải có xác thực điền ở đây để có thể xác thực 
+              -> settings.yaml : TUYỆT ĐỐI KHÔNG CHỈNH SỬA ( đã apply key capcha 20$ nên dư rồi đừng phá nữa)
+-> run.bat để chương trình hoạt động .
+!Sẽ có file log xuất ra khi chạy tool nên có thể theo dõi , tài khoản nào bị cấm thì sẽ bị xóa trong file farm.txt 
+Hàng bảo hành 1 tiếng sau khi nhận đề nghị không trả hàng 
