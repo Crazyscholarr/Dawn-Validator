@@ -54,7 +54,7 @@ class ApplicationManager:
                                 config.delay_before_start.min,
                                 config.delay_before_start.max
                             )
-                            logger.info(f"Account: {account.email} | Sleep for {random_delay} sec")
+                            logger.info(f"Account: {account.email} | Đang nghỉ ngơi trong {random_delay} sec,người còn nghĩ huống chi là bot!")
                             await asyncio.sleep(random_delay)
 
                             if process_func == self._process_farm:
@@ -72,7 +72,7 @@ class ApplicationManager:
 
         except Exception as e:
             logger.exception(e)
-            logger.error(f"Error processing account {account.email}: {str(e)}")
+            logger.error(f"Lỗi xử lý tài khoản {account.email}: {str(e)}")
             return {"success": False, "error": str(e)}
 
     async def _execute_module_for_accounts(
@@ -127,19 +127,19 @@ class ApplicationManager:
             Console().build()
 
             if config.module not in self.module_map:
-                logger.error(f"Unknown module: {config.module}")
+                logger.error(f"Mô-đun không xác định: {config.module}")
                 break
 
             accounts, process_func = self.module_map[config.module]
             random.shuffle(accounts)
 
             if not accounts:
-                logger.error(f"No accounts for {config.module}")
-                input("\nPress Enter to continue...")
+                logger.error(f"Không có tài khoản cho {config.module}")
+                input("\nNhấn Enter để tiếp tục...")
                 continue
 
             if config.module == "farm":
                 await self._farm_continuously(accounts)
             else:
                 await self._execute_module_for_accounts(accounts, process_func)
-                input("\nPress Enter to continue...")
+                input("\nNhấn Enter để tiếp tục...")
