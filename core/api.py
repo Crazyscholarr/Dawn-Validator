@@ -103,7 +103,7 @@ class APIClient:
 
                 if verify:
                     if response.status_code == 403:
-                        raise SessionRateLimited("Session is rate limited or blocked by Cloudflare")
+                        raise SessionRateLimited("Phiên bị giới hạn tốc độ hoặc bị chặn bởi Cloudflare")
 
                     if response.status_code in (500, 502, 503, 504):
                         raise ServerError(f"Server error - {response.status_code}")
@@ -113,7 +113,7 @@ class APIClient:
                         await self._verify_response(response_json)
                         return response_json
                     except json.JSONDecodeError:
-                        raise ServerError(f"Failed to decode response, most likely server error")
+                        raise ServerError(f"Không giải mã được phản hồi, nhiều khả năng là lỗi máy chủ")
 
                 return response.text
 
@@ -128,11 +128,11 @@ class APIClient:
             except Exception as error:
                 if attempt == max_retries - 1:
                     raise ServerError(
-                        f"Failed to send request after {max_retries} attempts: {error}"
+                        f"Không thể gửi yêu cầu sau {max_retries} lần thử:{error}"
                     )
                 await asyncio.sleep(retry_delay)
 
-        raise ServerError(f"Failed to send request after {max_retries} attempts")
+        raise ServerError(f"Không thể gửi yêu cầu sau {max_retries} lần thử")
 
 
 class DawnExtensionAPI(APIClient):
@@ -392,4 +392,4 @@ class DawnExtensionAPI(APIClient):
         if bearer:
             return bearer
         else:
-            raise APIError(f"Failed to login: {response}")
+            raise APIError(f"Không thể đăng nhập :  {response}")
