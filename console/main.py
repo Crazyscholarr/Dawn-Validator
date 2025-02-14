@@ -18,20 +18,20 @@ sys.path.append(os.path.realpath("."))
 
 class Console:
     MODULES = (
-        "Register",
-        "Farm",
-        "Complete tasks",
-        "Re-verify accounts",
-        "Export statistics",
+        "Tạo tài khoản",
+        "Canh tác tài khoản",
+        "Làm tasks",
+        "Xác minh lại tài khoản",
+        "Thống kê tài khoản",
         "Exit",
     )
     MODULES_DATA = {
-        "Register": "register",
-        "Farm": "farm",
+        "Tạo tài khoản": "register",
+        "Canh tác tài khoản": "farm",
         "Exit": "exit",
-        "Export statistics": "export_stats",
-        "Complete tasks": "complete_tasks",
-        "Re-verify accounts": "re_verify_accounts",
+        "Thống kê tài khoản": "export_stats",
+        "Làm tasks": "complete_tasks",
+        "Xác minh lại tài khoản": "re_verify_accounts",
     }
 
     def __init__(self):
@@ -40,19 +40,19 @@ class Console:
     def show_dev_info(self):
         os.system("cls" if os.name == "nt" else "clear")
 
-        title = text2art("JamBit", font="small")
+        title = text2art("DAWN Validator", font="ANSI Shadow")
         styled_title = Text(title, style="bold cyan")
 
         version = Text("VERSION: 1.8", style="blue")
-        telegram = Text("Channel: https://t.me/JamBitPY", style="green")
-        github = Text("GitHub: https://github.com/Jaammerr", style="green")
+        telegram = Text("Channel: https://t.me/crazyscholarr", style="magenta")
+        
 
         dev_panel = Panel(
-            Text.assemble(styled_title, "\n", version, "\n", telegram, "\n", github),
+            Text.assemble(styled_title, "\n", version, "\n", telegram, "\n"),
             border_style="yellow",
             expand=False,
             title="[bold green]Welcome[/bold green]",
-            subtitle="[italic]Powered by Jammer[/italic]",
+            subtitle="[italic]Powered by Crazyscholar[/italic]",
         )
 
         self.rich_console.print(dev_panel)
@@ -67,7 +67,7 @@ class Console:
         questions = [
             inquirer.List(
                 "module",
-                message=Fore.LIGHTBLACK_EX + "Select the module",
+                message=Fore.LIGHTBLACK_EX + "Chọn mô-đun để chạy:",
                 choices=self.MODULES,
             ),
         ]
@@ -84,12 +84,12 @@ class Console:
             table.add_row("Redirect mode", "Enabled")
             table.add_row("Redirect email", config.redirect_settings.email)
 
-        table.add_row("Accounts to register", str(len(config.accounts_to_register)))
-        table.add_row("Accounts to farm", str(len(config.accounts_to_farm)))
-        table.add_row("Accounts to re-verify", str(len(config.accounts_to_reverify)))
+        table.add_row("Tài khoản để đăng ký", str(len(config.accounts_to_register)))
+        table.add_row("Tài khoản để canh tác", str(len(config.accounts_to_farm)))
+        table.add_row("Tài khoản cần xác minh lại", str(len(config.accounts_to_reverify)))
         table.add_row("Threads", str(config.threads))
         table.add_row(
-            "Delay before start",
+            "Trì hoãn trước khi bắt đầu",
             f"{config.delay_before_start.min} - {config.delay_before_start.max} sec",
         )
 
@@ -97,8 +97,8 @@ class Console:
             table,
             expand=False,
             border_style="green",
-            title="[bold yellow]System Information[/bold yellow]",
-            subtitle="[italic]Use arrow keys to navigate[/italic]",
+            title="[bold yellow]Thông tin hệ thống[/bold yellow]",
+            subtitle="[italic]Sử dụng các phím mũi tên để điều hướng[/italic]",
         )
         self.rich_console.print(panel)
 
