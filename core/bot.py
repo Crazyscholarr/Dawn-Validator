@@ -24,15 +24,15 @@ class Bot(DawnExtensionAPI):
     @staticmethod
     async def handle_invalid_account(email: str, password: str, reason: Literal["unverified", "banned", "unregistered"]) -> None:
         if reason == "unverified":
-            logger.error(f"Account: {email} | Email not verified, run re-verify module | Removed from list")
+            logger.error(f"Account: {email} |Email chưa được xác minh, hãy chạy mô-đun xác minh lại | Đã xóa khỏi danh sách")
             await file_operations.export_unverified_email(email, password)
 
         elif reason == "banned":
-            logger.error(f"Account: {email} | Account is banned | Removed from list")
+            logger.error(f"Account: {email} |Tài khoản bị cấm | Đã xóa khỏi danh sách")
             await file_operations.export_banned_email(email, password)
 
         elif reason == "unregistered":
-            logger.error(f"Account: {email} | Account is not registered | Removed from list")
+            logger.error(f"Account: {email} | Tài khoản chưa được đăng ký | Đã xóa khỏi danh sách")
             await file_operations.export_unregistered_email(email, password)
 
         for account in config.accounts_to_farm:
@@ -92,29 +92,29 @@ class Bot(DawnExtensionAPI):
             puzzle_id = await self.get_puzzle_id()
             image = await self.get_puzzle_image(puzzle_id)
 
-            logger.info(f"Account: {self.account_data.email} | Got puzzle image, solving...")
+            logger.info(f"Account: {self.account_data.email} |Có hình ảnh câu đố, đang giải...")
             answer, solved, *rest = await captcha_solver.solve_image(image)
 
             if solved and len(answer) == 6:
-                logger.success(f"Account: {self.account_data.email} | Puzzle solved: {answer}")
+                logger.success(f"Account: {self.account_data.email} | Câu đố đã giải: {answer}")
                 return puzzle_id, answer, rest[0] if rest else None
 
             if len(answer) != 6 and rest:
                 await captcha_solver.report_bad(rest[0])
 
-            logger.error(f"Account: {self.account_data.email} | Failed to solve puzzle: {answer}")
-            raise ValueError(f"Failed to solve puzzle: {answer}")
+            logger.error(f"Account: {self.account_data.email} | Không giải được câu đố:  {answer}")
+            raise ValueError(f"Không giải được câu đố: {answer}")
 
         async def handle_turnistale_captcha() -> str:
             logger.info(f"Account: {self.account_data.email} | Solving Cloudflare challenge...")
             answer, solved, *rest = await captcha_solver.solve_turnistale()
 
             if solved:
-                logger.success(f"Account: {self.account_data.email} | Cloudflare challenge solved")
+                logger.success(f"Account: {self.account_data.email} | Giải quyết thách thức của Cloudflare")
                 return answer
 
-            logger.error(f"Account: {self.account_data.email} | Failed to solve Cloudflare challenge: {answer}")
-            raise ValueError(f"Failed to solve Cloudflare challenge: {answer}")
+            logger.error(f"Account: {self.account_data.email} | Không giải quyết được thử thách của Cloudflare: {answer}")
+            raise ValueError(f"Không giải quyết được thử thách của Cloudflare: {answer}")
 
         handler = handle_image_captcha if captcha_type == "image" else handle_turnistale_captcha
         for attempt in range(max_attempts):
@@ -124,10 +124,10 @@ class Bot(DawnExtensionAPI):
                 raise
             except Exception as e:
                 logger.error(
-                    f"Account: {self.account_data.email} | Error occurred while solving captcha ({captcha_type}): {str(e)} | Retrying..."
+                    f"Account: {self.account_data.email} | Đã xảy ra lỗi khi giải captcha ({captcha_type}): {str(e)} | Đang thử lại..."
                 )
                 if attempt == max_attempts - 1:
-                    raise CaptchaSolvingFailed(f"Failed to solve captcha after {max_attempts} attempts")
+                    raise CaptchaSolvingFailed(f"Không giải được captcha sau  {max_attempts}  lần thử")
 
     async def process_reverify_email(self, link_sent: bool = False) -> OperationResult:
         task_id = None
@@ -135,7 +135,7 @@ class Bot(DawnExtensionAPI):
         try:
             result = await self._validate_email()
             if not result["status"]:
-                logger.error(f"Account: {self.account_data.email} | Email is invalid: {result['data']}")
+                logger.error(f"Account: {self.account_data.email} | Email không hợp lệ: {result['data']}")
                 return OperationResult(
                     identifier=self.account_data.email,
                     data=self.account_data.password,
@@ -149,12 +149,12 @@ class Bot(DawnExtensionAPI):
             puzzle_id, answer, task_id = await self.get_captcha_data("image")
             if not link_sent:
                 await self.resend_verify_link(puzzle_id, answer)
-                logger.info(f"Account: {self.account_data.email} | Successfully resent verification email, waiting for email...")
+                logger.info(f"Account: {self.account_data.email} | Gửi lại email xác minh thành công, đang chờ email...")
                 link_sent = True
 
             confirm_url = await self._extract_link()
             if not confirm_url["status"]:
-                logger.error(f"Account: {self.account_data.email} | Confirmation link not found: {confirm_url['data']}")
+                logger.error(f"Account: {self.account_data.email} | Không tìm thấy liên kết xác nhận: {confirm_url['data']}")
                 return OperationResult(
                     identifier=self.account_data.email,
                     data=self.account_data.password,
@@ -162,7 +162,7 @@ class Bot(DawnExtensionAPI):
                 )
 
             logger.success(
-                f"Account: {self.account_data.email} | Link found, confirming email..."
+                f"Account: {self.account_data.email} | Đã tìm thấy liên kết, xác nhận email..."
             )
 
             try:
@@ -174,7 +174,7 @@ class Bot(DawnExtensionAPI):
             cloudflare_token = await self.get_captcha_data("turnistale")
             await self.verify_registration(key, cloudflare_token)
 
-            logger.success(f"Email verified successfully")
+            logger.success(f"Email đã được xác minh thành công")
             return OperationResult(
                 identifier=self.account_data.email,
                 data=self.account_data.password,
@@ -184,33 +184,33 @@ class Bot(DawnExtensionAPI):
         except APIError as error:
             match error.error_type:
                 case APIErrorType.INCORRECT_CAPTCHA:
-                    logger.warning(f"Account: {self.account_data.email} | Captcha answer incorrect, re-solving...")
+                    logger.warning(f"Account: {self.account_data.email} | Trả lời captcha không đúng, đang giải quyết lại...")
                     if task_id:
                         await captcha_solver.report_bad(task_id)
                     return await self.process_reverify_email(link_sent=link_sent)
 
                 case APIErrorType.EMAIL_EXISTS:
-                    logger.warning(f"Account: {self.account_data.email} | Email already exists")
+                    logger.warning(f"Account: {self.account_data.email} | Email đã tồn tại")
 
                 case APIErrorType.CAPTCHA_EXPIRED:
-                    logger.warning(f"Account: {self.account_data.email} | Captcha expired, re-solving...")
+                    logger.warning(f"Account: {self.account_data.email} | Captcha đã hết hạn, đang giải quyết lại...")
                     return await self.process_reverify_email(link_sent=link_sent)
 
                 case APIErrorType.SESSION_EXPIRED:
-                    logger.warning(f"Account: {self.account_data.email} | Session expired, re-logging in...")
+                    logger.warning(f"Account: {self.account_data.email} | Phiên đã hết hạn, đăng nhập lại...")
                     await self.clear_account_and_session()
                     return await self.process_reverify_email(link_sent=link_sent)
 
                 case APIErrorType.INVALID_CAPTCHA_TOKEN:
-                    logger.warning(f"Account: {self.account_data.email} | Invalid captcha token, re-solving...")
+                    logger.warning(f"Account: {self.account_data.email} | Mã thông báo captcha không hợp lệ, đang giải quyết lại...")
                     return await self.process_reverify_email(link_sent=link_sent)
 
                 case _:
-                    logger.error(f"Account: {self.account_data.email} | Failed to re-verify email: {error}")
+                    logger.error(f"Account: {self.account_data.email} | Không thể xác minh lại email: {error}")
 
         except Exception as error:
             logger.error(
-                f"Account: {self.account_data.email} | Failed to reverify email: {error}"
+                f"Account: {self.account_data.email} | Không xác minh lại được email: {error}"
             )
 
         return OperationResult(
@@ -226,24 +226,24 @@ class Bot(DawnExtensionAPI):
         try:
             result = await self._validate_email()
             if not result["status"]:
-                logger.error(f"Account: {self.account_data.email} | Email is invalid: {result['data']}")
+                logger.error(f"Account: {self.account_data.email} |Email không hợp lệ: {result['data']}")
                 return OperationResult(
                     identifier=self.account_data.email,
                     data=self.account_data.password,
                     status=False,
                 )
 
-            logger.info(f"Account: {self.account_data.email} | Registering...")
+            logger.info(f"Account: {self.account_data.email} | Đăng ký...")
             captcha_token = await self.get_captcha_data("turnistale")
 
             await self.register(captcha_token)
             logger.info(
-                f"Account: {self.account_data.email} | Registered, waiting for email..."
+                f"Account: {self.account_data.email} | Đã đăng ký, đang chờ email..."
             )
 
             confirm_url = await self._extract_link()
             if not confirm_url["status"]:
-                logger.error(f"Account: {self.account_data.email} | Confirmation link not found: {confirm_url['data']}")
+                logger.error(f"Account: {self.account_data.email} | Không tìm thấy liên kết xác nhận: {confirm_url['data']}")
                 return OperationResult(
                     identifier=self.account_data.email,
                     data=self.account_data.password,
@@ -251,7 +251,7 @@ class Bot(DawnExtensionAPI):
                 )
 
             logger.success(
-                f"Account: {self.account_data.email} | Link found, confirming registration..."
+                f"Account: {self.account_data.email} | Đã tìm thấy liên kết, xác nhận đăng ký..."
             )
 
             try:
@@ -263,7 +263,7 @@ class Bot(DawnExtensionAPI):
             cloudflare_token = await self.get_captcha_data("turnistale")
             await self.verify_registration(key, cloudflare_token)
 
-            logger.success(f"Registration verified and completed")
+            logger.success(f"Đã xác minh và hoàn tất đăng ký")
             return OperationResult(
                 identifier=self.account_data.email,
                 data=self.account_data.password,
@@ -274,27 +274,27 @@ class Bot(DawnExtensionAPI):
         except APIError as error:
             match error.error_type:
                 case APIErrorType.INCORRECT_CAPTCHA:
-                    logger.warning(f"Account: {self.account_data.email} | Captcha answer incorrect, re-solving...")
+                    logger.warning(f"Account: {self.account_data.email} | Trả lời captcha không đúng, cần giải quyết lại...")
                     if task_id:
                         await captcha_solver.report_bad(task_id)
                     return await self.process_registration()
 
                 case APIErrorType.EMAIL_EXISTS:
-                    logger.warning(f"Account: {self.account_data.email} | Email already exists")
+                    logger.warning(f"Account: {self.account_data.email} | Email đã tồn tại")
 
                 case APIErrorType.CAPTCHA_EXPIRED:
-                    logger.warning(f"Account: {self.account_data.email} | Captcha expired, re-solving...")
+                    logger.warning(f"Account: {self.account_data.email} | Captcha đã hết hạn, đang giải quyết lại...")
                     return await self.process_registration()
 
                 case APIErrorType.INVALID_CAPTCHA_TOKEN:
-                    logger.warning(f"Account: {self.account_data.email} | Invalid captcha token, re-solving...")
+                    logger.warning(f"Account: {self.account_data.email} | Mã thông báo captcha không hợp lệ, đang giải quyết lại...")
                     return await self.process_registration()
 
                 case _:
                     if "Something went wrong" in error.error_message:
-                        logger.warning(f"Account: {self.account_data.email} | Most likely email domain <{self.account_data.email.split('@')[1]}> is banned")
+                        logger.warning(f"Account: {self.account_data.email} | Tên miền email có khả năng cao nhất <{self.account_data.email.split('@')[1]}> bị banned")
                     else:
-                        logger.error(f"Account: {self.account_data.email} | Failed to register: {error}")
+                        logger.error(f"Account: {self.account_data.email} | Không đăng ký được: {error}")
 
         except Exception as error:
             logger.error(
@@ -339,20 +339,20 @@ class Bot(DawnExtensionAPI):
                     await self.handle_invalid_account(self.account_data.email, self.account_data.password, "unregistered")
 
                 case APIErrorType.SESSION_EXPIRED:
-                    logger.warning(f"Account: {self.account_data.email} | Session expired, re-logging in...")
+                    logger.warning(f"Account: {self.account_data.email} | Phiên đã hết hạn, đăng nhập lại...")
                     await self.clear_account_and_session()
                     return await self.process_farming()
 
                 case _:
-                    if "Something went wrong" in error.error_message:
+                    if "Có gì đó không ổn" in error.error_message:
                         await self.handle_invalid_account(self.account_data.email, self.account_data.password, "banned")
                     else:
-                        logger.error(f"Account: {self.account_data.email} | Failed to farm: {error}")
+                        logger.error(f"Account: {self.account_data.email} | Không thể canh tác: {error}")
 
 
         except Exception as error:
             logger.error(
-                f"Account: {self.account_data.email} | Failed to farm: {error}"
+                f"Account: {self.account_data.email} | Không thể canh tác: {error}"
             )
 
         return
@@ -374,7 +374,7 @@ class Bot(DawnExtensionAPI):
 
             user_info = await self.user_info()
             logger.success(
-                f"Account: {self.account_data.email} | Successfully got user info"
+                f"Account: {self.account_data.email} | Đã lấy được thông tin người dùng thành công"
             )
             return StatisticData(
                 success=True,
@@ -397,7 +397,7 @@ class Bot(DawnExtensionAPI):
                     await self.handle_invalid_account(self.account_data.email, self.account_data.password, "unregistered")
 
                 case APIErrorType.SESSION_EXPIRED:
-                    logger.warning(f"Account: {self.account_data.email} | Session expired, re-logging in...")
+                    logger.warning(f"Account: {self.account_data.email} | Phiên đã hết hạn, đăng nhập lại...")
                     await self.clear_account_and_session()
                     return await self.process_get_user_info()
 
@@ -406,12 +406,12 @@ class Bot(DawnExtensionAPI):
                         await self.handle_invalid_account(self.account_data.email, self.account_data.password, "banned")
                     else:
                         logger.error(
-                            f"Account: {self.account_data.email} | Failed to get user info: {error}"
+                            f"Account: {self.account_data.email} | Không lấy được thông tin người dùng: {error}"
                         )
 
         except Exception as error:
             logger.error(
-                f"Account: {self.account_data.email} | Failed to get user info: {error}"
+                f"Account: {self.account_data.email} | Không lấy được thông tin người dùng: {error}"
             )
 
         return StatisticData(success=False, referralPoint=None, rewardPoint=None)
@@ -429,11 +429,11 @@ class Bot(DawnExtensionAPI):
             else:
                 await self.handle_existing_account(db_account_data, verify_sleep=False)
 
-            logger.info(f"Account: {self.account_data.email} | Completing tasks... | It may take a while")
+            logger.info(f"Account: {self.account_data.email} | Đang hoàn thành nhiệm vụ... | Có thể mất một lúc")
             await self.complete_tasks()
 
             logger.success(
-                f"Account: {self.account_data.email} | Successfully completed tasks"
+                f"Account: {self.account_data.email} |Nhiệm vụ đã hoàn thành thành công"
             )
             return OperationResult(
                 identifier=self.account_data.email,
@@ -443,7 +443,7 @@ class Bot(DawnExtensionAPI):
 
         except Exception as error:
             logger.error(
-                f"Account: {self.account_data.email} | Failed to complete tasks: {error}"
+                f"Account: {self.account_data.email} | Không hoàn thành được nhiệm vụ: {error}"
             )
             return OperationResult(
                 identifier=self.account_data.email,
@@ -468,7 +468,7 @@ class Bot(DawnExtensionAPI):
         except APIError as error:
             match error.error_type:
                 case APIErrorType.INCORRECT_CAPTCHA:
-                    logger.warning(f"Account: {self.account_data.email} | Captcha answer incorrect, re-solving...")
+                    logger.warning(f"Account: {self.account_data.email} | Trả lời captcha không đúng, giải quyết lại...")
                     if task_id:
                         await captcha_solver.report_bad(task_id)
                     return await self.login_new_account()
@@ -486,14 +486,14 @@ class Bot(DawnExtensionAPI):
                     return False
 
                 case APIErrorType.CAPTCHA_EXPIRED:
-                    logger.warning(f"Account: {self.account_data.email} | Captcha expired, re-solving...")
+                    logger.warning(f"Account: {self.account_data.email} | Captcha đã hết hạn, đang giải quyết lại...")
                     return await self.login_new_account()
 
                 case _:
                     if "Something went wrong" in error.error_message:
                         await self.handle_invalid_account(self.account_data.email, self.account_data.password, "banned")
                     else:
-                        logger.error(f"Account: {self.account_data.email} | Failed to login: {error}")
+                        logger.error(f"Account: {self.account_data.email} | Không thể đăng nhập rồi.... {error}")
 
                     return False
 
@@ -501,13 +501,13 @@ class Bot(DawnExtensionAPI):
             sleep_until = self.get_sleep_until()
             await Accounts.set_sleep_until(self.account_data.email, sleep_until)
             logger.error(
-                f"Account: {self.account_data.email} | Failed to solve captcha after 5 attempts, sleeping..."
+                f"Account: {self.account_data.email} | Không giải được captcha sau 5 lần thử, đang ngủ..."
             )
             return False
 
         except Exception as error:
             logger.error(
-                f"Account: {self.account_data.email} | Failed to login: {error}"
+                f"Account: {self.account_data.email} | Đăng nhập không thành công: {error}"
             )
             return False
 
@@ -521,18 +521,18 @@ class Bot(DawnExtensionAPI):
         status, result = await self.verify_session()
         if not status:
             logger.warning(
-                f"Account: {self.account_data.email} | Session is invalid, re-logging in: {result}"
+                f"Account: {self.account_data.email} | Phiên không hợp lệ, hãy đăng nhập lại: {result}"
             )
             await self.clear_account_and_session()
             return await self.process_farming()
 
-        logger.info(f"Account: {self.account_data.email} | Using existing session")
+        logger.info(f"Account: {self.account_data.email} | Sử dụng phiên hiện có")
         return True
 
     async def handle_session_blocked(self):
         await self.clear_account_and_session()
         logger.error(
-            f"Account: {self.account_data.email} | Session rate-limited | Sleeping..."
+            f"Account: {self.account_data.email} | Tỷ lệ phiên giới hạn | Ngủ..."
         )
         sleep_until = self.get_sleep_until(blocked=True)
         await Accounts.set_session_blocked_until(email=self.account_data.email, session_blocked_until=sleep_until, app_id=self.account_data.appid)
@@ -544,7 +544,7 @@ class Bot(DawnExtensionAPI):
         if sleep_until > current_time:
             sleep_duration = (sleep_until - current_time).total_seconds()
             logger.debug(
-                f"Account: {self.account_data.email} | Sleeping until next action {sleep_until} (duration: {sleep_duration:.2f} seconds)"
+                f"Account: {self.account_data.email} | NGHỈ NGƠI   (thời lượng: {sleep_duration:.2f} seconds)"
             )
             return True
 
@@ -554,17 +554,17 @@ class Bot(DawnExtensionAPI):
         try:
             await self.keepalive()
             logger.success(
-                f"Account: {self.account_data.email} | Sent keepalive request"
+                f"Account: {self.account_data.email} | Đã gửi yêu cầu duy trì kết nối thành công"
             )
 
             user_info = await self.user_info()
             logger.info(
-                f"Account: {self.account_data.email} | Total points earned: {user_info['rewardPoint']['points']}"
+                f"Account: {self.account_data.email} | Đã gửi yêu cầu duy trì kết nối {user_info['rewardPoint']['points']}"
             )
 
         except Exception as error:
             logger.error(
-                f"Account: {self.account_data.email} | Failed to perform farming actions: {error}"
+                f"Account: {self.account_data.email} | Không thực hiện được hành động canh tác: {error}"
             )
 
         finally:
@@ -578,5 +578,5 @@ class Bot(DawnExtensionAPI):
             await self.session.close()
         except Exception as error:
             logger.debug(
-                f"Account: {self.account_data.email} | Failed to close session: {error}"
+                f"Account: {self.account_data.email} | Không thể đóng phiên:  {error}"
             )
