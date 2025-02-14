@@ -229,3 +229,4 @@ hegbhf
 - Validate proxy format
 - Check proxy functionality
 - Ensure proxy authentication is correct
+# Dawn-Validator
